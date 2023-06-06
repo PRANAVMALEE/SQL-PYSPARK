@@ -1,0 +1,403 @@
+                                         SQL PRACTICE  QUERIES + PYSPARK CODE
+	-------------------------------------------------------------------------------------
+	------------------------------					
+
+1.>How to find duplicate records present in table.
+
+Ans:-  Select  DEPARTMENT_id, COUNT() FROM employees 
+       group by DEPARTMENT_id 
+	   HAVING COUNT() = 1;
+	   
+	       OR 
+		
+		Select * from employees where rowid in (select max (rowid)from employees
+		Group by department_id
+        Having Count() =1 )	;	
+		
+		
+	-------------------------------------------------------------------------------
+	------------------------------------
+	In Pyspark 
+	To find duplicate records present in a table in PySpark, you can use the `groupBy` and `count` functions
+	to identify rows with a count greater than 1. Here's an example:
+
+```python
+
+from pyspark.sql import SparkSession 
+from pyspark.sql.functione import col
+
+#Create SparkSession 
+
+spark = SparkSession.builder.getOrCreate()
+
+#Read  the table into a DataFrame
+
+df=spark.read.format("jdbc").option("url",jdbc:mysql://localhost:3306/mydatabase").option("dbtable" , "mytable").option("user", "username")
+.option("password" , "password").load()
+
+# Group by all columns and count the number of occurences.
+duplicate_rows = df.groupBy(df.columns).count().where(col("count") > 1)
+
+
+#Show the duplicate
+duplicate.rows.show()
+
+
+OR
+
+df.createOrReplaceTempView('emp')
+
+df = spark.sql('')
+
+# Show the duplicate rows
+duplicate_rows.show()
+```
+
+In this example, you first read the table into a DataFrame using the appropriate JDBC options.
+ Then, you use the `groupBy` function on all columns of the DataFrame and apply the `count` function to each group. 
+ Next, you filter the resulting DataFrame to keep only rows where the count is greater than 1, indicating duplicate records. 
+ Finally, you display the duplicate rows using the `show` function.
+
+Note: Adjust the JDBC options (`url`, `dbtable`, `user`, `password`) according to your database connection details.
+
+By executing this code, you will get a DataFrame containing the duplicate records present in the table, 
+along with the count of occurrences for each duplicate set of columns.
+	
+	
+2.> How to delete duplicate records in SQL
+Ans:- Delete from [table name] where rowid not in (select max(rowid) from table name])
+      Group By  [Column name ] );
+
+3.> df.dropDuplicate()
+	df.distinct()
+	
+	The dropDuplicates() function takes a single argument, which is a list of columns to check for duplicates.
+	If any of the values in the columns match, the row will be dropped. 
+	For example, the following code will drop all duplicate rows from the customers DataFrame where the id and name columns are equal:
+	
+Code snippet
+customers.dropDuplicates(["id", "name"]).show()
+
+The distinct() function does not take any arguments. It will drop all duplicate rows from the DataFrame, 
+regardless of which columns contain duplicate values. 
+For example, the following code will drop all duplicate rows from the
+ customers DataFrame:
+ 
+Code snippet
+customers.distinct().show()
+
+
+
+	  
+
+
+Update multiple rows using case statement.
+Ans:-  UPDATE emp_table
+SET column1 = CASE 
+    WHEN condition1 THEN new_value1
+    WHEN condition2 THEN new_value2
+    ELSE column1
+END,
+column2 = CASE
+    WHEN condition3 THEN new_value3
+    WHEN condition4 THEN new_value4
+    ELSE column2
+END,
+...
+WHERE condition5;
+
+update emp table 
+set lastname = case when lastname in ('wagh','Geek2','abc','def') then wagh
+
+else lastname
+end,
+    set firstname = case when firstname = 'Geeksforgeeks' then 'Pradeep'
+	else firstname
+	end ;
+	
+
+Write a SQL query to extract values from email before @ display it in username 
+
+Ans :- select EMAIL, substr(EMAIL,1,instr(EMAIL, '@'-1)) as username 
+
+write SQL query to find the 5 highest salary .
+Ans:- SELECT salary,employee_name FROM employees
+       ORDER BY salary DESC
+      LIMIT 5;
+	  
+	  or By using Ramk() Over
+	  
+	  SELECT * from 
+	  (select employee_name,salary RANK() OVER (ORDER BY DESC) AS r from employee)
+	   where r = 5
+	   
+	   In pyspark
+	   
+	   from pyspark.sql import SparkSession
+	   from pyspark.sql.function import col
+
+# Create SparkSession
+spark = SparkSession.builder.getOrCreate()
+
+# Read the table into a DataFrame
+df = spark.read.format("jdbc").option("url", "jdbc:mysql://localhost:3306/mydatabase").option("dbtable", "your_table")
+.option("user", "username").option("password", "password").load()
+           
+		   OR if the file is in the system
+		   
+		   df =  spark.read.format("employees.csv" , header = true , inferschema = true )
+		   
+		   5_highest_salary = df.orderby(desc("salary")).limit(5)
+
+
+#  find the 5 highest salaries 
+
+  highest_salaries = df.orderBy(df.salaries.desc("SALARY")).limit(5)
+  
+  
+  #SHOW RESULTS
+  
+  highest_salaries.show()
+  
+   write highest salary using the SQL query.
+   Ans:-
+            SELECT salary,
+            ROW_NUMBER() OVER (ORDER BY salary DESC) AS rank
+            FROM
+            employees;
+  
+  
+         SELECT
+  MAX(salary) AS highest_salary
+         FROM
+         employees;
+		  
+		  
+		  SELECT
+  salary,
+  DENSE_RANK() OVER (ORDER BY salary DESC) AS rank
+FROM
+  employees;
+
+This query is similar to the ROW_NUMBER window function,
+
+ but it will assign ranks to all rows, even if there are duplicate salaries.
+ The query will then return the row with the rank of 1, which will be the highest salary.
+
+Which method you choose to use will depend on your specific needs.
+ If you only need to find the highest salary, then any of the methods will work. 
+ However, if you need to find the highest salary and also the rank of that salary,
+ then you will need to use the ROW_NUMBER or DENSE_RANK window function.
+ 
+ 
+ IN PySpark
+ 
+      from pyspark.sql import SparkSession
+from pyspark.sql.functions import max
+
+# Create SparkSession
+spark = SparkSession.builder.getOrCreate()
+
+# Read the table into a DataFrame
+df = spark.read.format("jdbc").option("url", "jdbc:mysql://localhost:3306/mydatabase").option("dbtable", "your_table").option("user", "username").option("password", "password").load()
+
+# Find the highest salary
+   highest_salary = df.agg(max("salary")).collect()[0][0]
+
+# Print the highest salary
+print("Highest Salary:" highest_salary)
+In this example, you first create a SparkSession.
+ Then, you read the table into a DataFrame using the appropriate JDBC options.
+
+Next, you use the agg() function on the DataFrame and pass max("salary") as an
+ argument to compute the maximum value of the "salary" column.
+
+The collect() function is used to retrieve the result as a list, and [0][0]
+ is used to access the first element of the list and retrieve the actual 
+ maximum salary value.
+------------------------------------------------------------------------------------------------------------------------------------
+NOTE:-
+------------------------------------------------------------------------------------------------------------------------------------
+ 
+ highest_salary = df.agg(max("salary")).collect()[0][0]
+ 
+ 5_highest_salary = df.orderBy(df.salary.desc()).limit(5)
+ 
+ duplicate_rows = df.groupBy(df.column).count().where(col("count") > 1
+------------------------------------------------------------------------------------------------------------------------------------
+ 
+ 
+ show result
+  duplicate_rows.show()
+  highest_salaries_sh0w()
+ 
+ 
+
+Finally, you print the highest salary using print().
+
+
+
+  Q.-- SHOW THE DUPLICATE Count
+  
+  ANs:- Select department_id,Count() from employees
+        Group by Department_id
+		Having count > 1 ;
+		
+	  OR
+	  FOR TWO TABLES TO FIND THE DUPLICATES 
+	  
+	  
+	  SELECT * from employees where rowid in (select max (rowid) from Employees be
+	   where a.department_id = b.department_id)
+	   
+	   
+	  Q.-- display first 5 rows only in SQL
+	   Ans:- select * from customers
+	         where rownum <= 5;
+			 
+			 
+			 from pyspark.sql import SparkSession
+                         from pyspark.sql.function import max
+
+# Create SparkSession
+spark = SparkSession.builder.getOrCreate()
+
+# Read the table into a DataFrame
+df = spark.read.format("jdbc").option("url", "jdbc:mysql://localhost:3306/mydatabase").option("dbtable", "your_table").option("user", "username").option("password", "password").load()
+
+# Show the first 5 rows
+df.show(5)
+
+ q.--- Display last 5 rows only.
+ Ans:- select * from customers
+       where rownum <=5
+	   ORDER BY CUSTOMERS DESC;
+	   
+	   
+	 Q.> Employee where Employee is not assigned to the department.
+	 Ans:- select * from employees where Department_id not in
+	 (Select Department_id from departments);
+	 
+	 Q--SQL query to find highest salary in the department .
+Ans:-  select Department, MAX(SALARY) AS  Highest_salary
+        From employee
+        Group by department
+		ORDER BY Highest_salary DESC;
+		
+		Sure, here is the PySpark code to find the highest salary in the department:
+Code snippet
+from pyspark.sql.functions import max
+
+# Create a SparkSession
+spark = SparkSession.builder.appName("Find Highest Salary in Department").getOrCreate()
+
+# Read the data
+df = spark.read.csv("data/employees.csv", header=True, inferSchema=True)
+
+# Group the data by department
+grouped_df = df.groupBy("department")
+
+# Find the maximum salary in each department
+max_salary_df = grouped_df.agg(max("salary").alias(max_salary))
+
+# Show the results
+max_salary_df.show()
+
+This code will first create a SparkSession, which is a necessary object for working with PySpark. Then, it will read the data from a CSV file into a DataFrame. Next, it will group the DataFrame by department and find the maximum salary in each department. Finally, it will show the results.
+Here is an example of the output of this code:
+Code snippet
++------+------+
+| department|max_salary|
++------+------+
+| Finance|99000|
+| Marketing|95000|
+| Sales|90000|
++------+------+
+
+
+
+
+FOR LAST 5 ROWS IN PYSPARK.
+ Import the necessary functions
+from pyspark.sql.functions import tail
+
+# Create a SparkSession
+spark = SparkSession.builder.appName("Display Last 5 Rows").getOrCreate()
+
+# Read the data
+df = spark.read.csv("data/employees.csv", header=True, inferSchema=True)
+
+# Get the last 5 rows
+last_5_rows = df.tail(5)
+
+or 
+
+import pyspark.sql.functions as F
+
+# Create a DataFrame
+df = spark.createDataFrame([
+    (1, "John Doe"),
+    (2, "Jane Doe"),
+    (3, "Peter Smith"),
+    (4, "Susan Jones"),
+    (5, "Michael Brown")
+], ("id", "name"))
+
+# Get the last 5 rows
+last_5_rows = df.orderBy(F.desc("id")).limit(5)
+
+# Display the last 5 rows
+last_5_rows.show()
+
+# Show the results
+last_5_rows.show()
+
+     --Q. write a sql query to display employee as a manager using inner join
+
+select a.employee_id,a.first_name, a.Email from employees a
+inner join employees b 
+on a.employee_id = b.manager_id;
+
+-------------------------------------------------------------------------------------------------------------------
+--Q. How to give even row to data present in table
+
+select * from
+(
+select first_name,last_name,salary,rownum as r from employees
+)where mod(r,2)=0;
+
+-------------------------------------------------------------------------------------------------------------------__--	--
+		
+	
+       		
+	 
+	 
+	   
+	   
+	   
+
+
+			 
+	   
+  
+
+
+
+
+
+	   
+	   
+	 
+
+
+
+
+
+
+	  
+	  
+		
+		
+	
+
+	   
